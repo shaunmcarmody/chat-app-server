@@ -5,29 +5,37 @@ const app = express();
 app.use(express.json());
 
 class Chat {
-  constructor(
-    participants = 0,
-    persons = [],
-    messages = [],
-    totalMessages = 0,
-    lastMessage = null,
-  ) {
-    this.participants = participants;
-    this.persons = persons;
+  constructor(groupId = null, lastMessageId = null, messages = [], persons = [], totalMessages = 0, totalPersons = 0) {
+    this.groupId = groupId;
+    this.lastMessageId = lastMessageId;
     this.messages = messages;
+    this.persons = persons;
     this.totalMessages = totalMessages;
-    this.lastMessage = lastMessage;
+    this.totalPersons = totalPersons;
   }
 
   addMessage(message) {
     this.messages.push(message);
     this.totalMessages += 1;
-    this.lastMessage = message.id;
+    this.lastMessageId = message.id;
   }
 
   addPerson(person) {
     this.persons.push(person);
-    this.participants += 1;
+    this.totalPersons += 1;
+    this.groupId = uuid();
+  }
+
+  getMessages(id) {
+    if (this.lastMessageId === id) return [];
+    const messageArray = [];
+    let i = this.totalMessages - 1;
+    while (!i < 0 && this.messages[i].id !== id) {
+      const message = this.messages[i];
+      messageArray.push(message);
+      i -= 1;
+    }
+    return messageArray;
   }
 }
 
@@ -47,7 +55,7 @@ class Message {
   }
 }
 
-const chat = new Chat();
+const chat = new Chat(uuid());
 
 app.post('/user/new', (req, res) => {
   try {
