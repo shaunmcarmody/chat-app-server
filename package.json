@@ -1,0 +1,26 @@
+{
+  "name": "chat-app-server",
+  "version": "1.0.0",
+  "description": "simple express server",
+  "main": "index.js",
+  "scripts": {
+    "server": "nodemon index.js",
+    "test": "cross-env DB_ENV=testing jest --watch --verbose",
+    "start": "node index.js"
+  },
+  "repository": "https://github.com/shaunmcarmody/chat-app-server.git",
+  "author": "shaun carmody",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "cross-env": "^6.0.3",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "2.18.2",
+    "jest": "^24.9.0",
+    "nodemon": "^2.0.2",
+    "supertest": "^4.0.2"
+  }
+}
