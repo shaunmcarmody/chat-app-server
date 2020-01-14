@@ -14,6 +14,7 @@ module.exports = {
         "ecmaVersion": 2018
     },
     "rules": {
-        "max-classes-per-file": ["error", 3]
+        "max-classes-per-file": ["error", 3],
+        "max-len": ["error", { "code": 150 }]
     }
 };
