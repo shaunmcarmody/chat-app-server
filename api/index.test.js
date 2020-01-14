@@ -6,7 +6,7 @@ describe('/user/new', () => {
     const res = await request(api).post('/user/new').send({ name: 'John Doe' });
     expect(res.status).toBe(201);
     expect(res.type).toBe('application/json');
-    expect(res.body.chat.participants).toEqual(1);
+    expect(res.body.chat.totalPersons).toEqual(1);
   });
 });
 
