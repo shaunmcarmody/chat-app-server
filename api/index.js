@@ -1,15 +1,16 @@
 const express = require('express');
 const uuid = require('uuid/v4');
+const isBefore = require('date-fns/isBefore');
 
 const app = express();
 app.use(express.json());
 
 class Chat {
-  constructor(groupId = null, lastMessageId = null, messages = [], persons = [], totalMessages = 0, totalPersons = 0) {
-    this.groupId = groupId;
-    this.lastMessageId = lastMessageId;
+  constructor(messages = [], messagesLastUpdated = null, persons = [], personsLastUpdated = null, totalMessages = 0, totalPersons = 0) {
     this.messages = messages;
+    this.messagesLastUpdated = messagesLastUpdated;
     this.persons = persons;
+    this.personsLastUpdated = personsLastUpdated;
     this.totalMessages = totalMessages;
     this.totalPersons = totalPersons;
   }
@@ -17,53 +18,77 @@ class Chat {
   addMessage(message) {
     this.messages.push(message);
     this.totalMessages += 1;
-    this.lastMessageId = message.id;
+    this.messagesLastUpdated = message.published;
   }
 
   addPerson(person) {
     this.persons.push(person);
     this.totalPersons += 1;
-    this.groupId = uuid();
+    this.personsLastUpdated = new Date();
   }
 
-  getMessages(id) {
-    if (this.lastMessageId === id) return [];
-    const messageArray = [];
-    let i = this.totalMessages - 1;
-    while (!i < 0 && this.messages[i].id !== id) {
-      const message = this.messages[i];
-      messageArray.push(message);
-      i -= 1;
+  getMessages(date) {
+    if (isBefore(date, this.messagesLastUpdated)) {
+      return {
+        messages: this.messages,
+        messagesLastUpdated: this.messagesLastUpdated,
+        totalMessages: this.totalMessages,
+      };
     }
-    return messageArray;
+    return [];
+  }
+
+  getPersons(date) {
+    if (isBefore(date, this.personsLastUpdated)) {
+      return {
+        persons: this.persons,
+        personsLastUpdated: this.personsLastUpdated,
+        personstotalPersons: this.totalPersons,
+      };
+    }
+    return [];
   }
 }
 
 class Person {
-  constructor(id, name, active = true) {
-    this.id = id;
+  constructor(name, id = uuid(), active = false, created = new Date()) {
     this.name = name;
+    this.id = id;
     this.active = active;
+    this.created = created;
   }
 }
 
 class Message {
-  constructor(id, person, message) {
-    this.id = id;
+  constructor(person, message, id = uuid(), published = new Date()) {
     this.person = person;
     this.message = message;
+    this.id = id;
+    this.published = published;
   }
 }
 
-const chat = new Chat(uuid());
+const chat = new Chat();
 
 app.post('/user/new', (req, res) => {
   try {
-    const id = uuid();
     const { name } = req.body;
-    const personObj = new Person(id, name);
+    const personObj = new Person(name);
     chat.addPerson(personObj);
-    res.status(201).json({ chat });
+    res.status(201).json({ payload: chat });
+  } catch ({ message }) {
+    res.status(400).json({ message });
+  }
+});
+
+app.post('/query', (req, res) => {
+  try {
+    const { messagesLastUpdated, personsLastUpdated } = req.body;
+    const payload = {
+      ...chat.getMessages(new Date(messagesLastUpdated)),
+      ...chat.getPersons(new Date(personsLastUpdated)),
+    };
+    res.status(201).json({ payload });
   } catch ({ message }) {
     res.status(400).json({ message });
   }
@@ -71,11 +96,10 @@ app.post('/user/new', (req, res) => {
 
 app.post('/message/new', (req, res) => {
   try {
-    const id = uuid();
     const { person, message } = req.body;
-    const messageObj = new Message(id, person, message);
+    const messageObj = new Message(person, message);
     chat.addMessage(messageObj);
-    res.status(201).json({ chat });
+    res.status(201).json({ payload: chat });
   } catch ({ message }) {
     res.status(400).json({ message });
   }
