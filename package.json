@@ -12,7 +12,7 @@
   "author": "shaun carmody",
   "license": "MIT",
   "dependencies": {
-    "date-fns": "^2.9.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "uuid": "^3.3.3"
   },
