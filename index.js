@@ -31,8 +31,9 @@ class Chat {
 }
 
 class Message {
-  constructor(user, message, id = uuid()) {
+  constructor(user, userId, message, id = uuid()) {
     this.user = user;
+    this.userId = userId;
     this.message = message;
     this.id = id;
   }
@@ -40,7 +41,7 @@ class Message {
 
 const chat = new Chat();
 
-server.post('/subscribe/', async (req, res) => {
+server.post('/subscribe', async (req, res) => {
   try {
     const { totalMsgs } = req.body;
     const messages = chat.getMessages(totalMsgs);
@@ -52,8 +53,8 @@ server.post('/subscribe/', async (req, res) => {
 
 server.post('/message/new', (req, res) => {
   try {
-    const { user, message } = req.body;
-    const messageObj = new Message(user, message);
+    const { user, userId, message } = req.body;
+    const messageObj = new Message(user, userId, message);
     chat.addMessage(messageObj);
     res.status(201).json({ message: 'success' });
   } catch ({ message }) {
